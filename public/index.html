@@ -176,34 +176,44 @@
         }
 
         async function loadJournals() {
-            try {
-                const res = await fetch('/api/journals');
-                const result = await res.json();
-                const tbody = document.getElementById('journal-list');
+    const tbody = document.getElementById('journal-list');
+    if (!tbody) return;
 
-                if (result.success && result.data.length > 0) {
-                    tbody.innerHTML = result.data.map(j => `
-                        <tr>
-                            <td class="p-3 text-slate-400 whitespace-nowrap">${j.transaction_date}</td>
-                            <td class="p-3 font-medium text-white">${j.description}</td>
-                            <td class="p-3">
-                                ${j.journal_items.map(i => `
-                                    <div class="text-xs">
-                                        <span class="text-slate-400">${i.accounts?.name || 'Akun'}:</span> 
-                                        ${i.debit > 0 ? `<span class="text-emerald-400">Debet Rp ${i.debit.toLocaleString()}</span>` : ''}
-                                        ${i.credit > 0 ? `<span class="text-rose-400">Kredit Rp ${i.credit.toLocaleString()}</span>` : ''}
-                                    </div>
-                                `).join('')}
-                            </td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Belum ada transaksi.</td></tr>';
-                }
-            } catch (err) {
-                console.error(err);
-            }
+    try {
+        const res = await fetch('/api/journals');
+        const result = await res.json();
+
+        // Jika data berhasil diambil dan ada isinya
+        if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+            tbody.innerHTML = result.data.map(j => `
+                <tr>
+                    <td class="p-3 text-slate-400 whitespace-nowrap">${j.transaction_date || '-'}</td>
+                    <td class="p-3 font-medium text-white">${j.description || '-'}</td>
+                    <td class="p-3">
+                        ${(j.journal_items || []).map(i => `
+                            <div class="text-xs">
+                                <span class="text-slate-400">${i.accounts?.name || 'Akun'}:</span> 
+                                ${i.debit > 0 ? `<span class="text-emerald-400">Debet Rp ${Number(i.debit).toLocaleString()}</span>` : ''}
+                                ${i.credit > 0 ? `<span class="text-rose-400">Kredit Rp ${Number(i.credit).toLocaleString()}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </td>
+                </tr>
+            `).join('');
+        } 
+        // Jika koneksi sukses tapi database masih kosong
+        else if (result.success) {
+            tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400">Belum ada transaksi tersimpan. Silakan catat transaksi baru di atas.</td></tr>';
+        } 
+        // Jika server menolak / error koneksi database
+        else {
+            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-rose-400">⚠️ Kendala Server: ${result.message || 'Gagal mengambil data dari Supabase'}</td></tr>`;
         }
+    } catch (err) {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-rose-400">⚠️ Gagal terhubung ke server.</td></tr>';
+    }
+}
     </script>
 </body>
 </html>
