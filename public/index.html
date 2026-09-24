@@ -3,49 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buku Kas UMKM</title>
-    <!-- Tambahkan stylesheet/CSS kamu jika ada -->
+    <title>Akuntansi UMKM - AI Smart Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body style="margin: 0; background-color: #0f172a; font-family: sans-serif;">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
 
-    <!-- 1. HALAMAN LOGIN (Tampil Pertama Kali) -->
-    <div id="login-screen" style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
-        <div style="background: #1e293b; padding: 30px; border-radius: 12px; width: 90%; max-width: 340px; text-align: center; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-            <h2 style="margin-bottom: 8px;">🔐 Login Buku Kas</h2>
-            <p style="font-size: 13px; color: #94a3b8; margin-bottom: 20px;">Silakan masuk untuk mengakses data</p>
+    <!-- 1. MODAL LOGIN OVERLAY (Otomatis Menutup Layar Jika Belum Login) -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-950/95 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 p-8 rounded-2xl w-full max-w-sm border border-slate-700 shadow-2xl text-center">
+            <div class="text-4xl mb-2">🔐</div>
+            <h2 class="text-2xl font-bold mb-1">Buku Kas UMKM</h2>
+            <p class="text-xs text-slate-400 mb-6">Masukkan username & password</p>
             
-            <input type="text" id="login-user" placeholder="Username" style="width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box;">
-            <input type="password" id="login-pass" placeholder="Password" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box;">
+            <input type="text" id="login-user" placeholder="Username" class="w-full p-3 mb-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500">
+            <input type="password" id="login-pass" placeholder="Password" class="w-full p-3 mb-6 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500">
             
-            <button onclick="handleLogin()" style="width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Masuk Web</button>
-            <p id="login-error" style="color: #ef4444; font-size: 13px; margin-top: 12px; display: none;"></p>
+            <button onclick="handleLogin()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition">Masuk Web</button>
+            <p id="login-error" class="text-red-400 text-xs mt-3 hidden"></p>
         </div>
     </div>
 
-    <!-- 2. HALAMAN UTAMA APLIKASI (Default Disembunyikan) -->
-    <div id="main-app" style="display: none; padding: 20px; color: white;">
+    <!-- 2. TAMPILAN UTAMA APLIKASI BUKU KAS -->
+    <div class="max-w-4xl mx-auto">
         
-        <!-- Tombol Logout -->
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-            <button onclick="handleLogout()" style="background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">🔒 Logout</button>
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-400">Buku Kas UMKM</h1>
+                <p class="text-xs text-slate-400">Pencatatan otomatis berbasis AI Smart Assistant</p>
+            </div>
+            <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg font-bold transition">🔒 Logout</button>
         </div>
 
-        <!-- =================================================== -->
-        <!-- TEMPATKAN SELURUH KODE DASHBOARD/APLIKASI KAMU DI SINI -->
-        <!-- =================================================== -->
+        <!-- Input Form AI -->
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-8 shadow-xl">
+            <h3 class="text-lg font-semibold text-amber-400 mb-2 flex items-center gap-2">
+                ✨ Catat Transaksi Otomatis
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Tulis transaksi harianmu, AI akan otomatis mengelompokkan akun yang tepat.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="prompt-input" placeholder="contoh: beli tepung 6rb" class="flex-1 p-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500">
+                <button onclick="processAI()" id="btn-catat" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-3 rounded-lg transition">⚡ Catat</button>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 mt-4 text-xs text-slate-400">
+                <span>Contoh umum:</span>
+                <button onclick="setPrompt('Beli Bahan Jualan 50rb')" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Beli Bahan Jualan</button>
+                <button onclick="setPrompt('Biaya Operasional 20rb')" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Biaya Operasional</button>
+                <button onclick="setPrompt('Penjualan Transfer 100rb')" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded">Penjualan Transfer</button>
+            </div>
+            
+            <p id="status-ai" class="text-xs text-blue-400 mt-3 hidden">🤖 AI sedang menguraikan transaksi...</p>
+        </div>
 
+        <!-- Tabel Riwayat Transaksi -->
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6">
+            <h3 class="text-lg font-semibold mb-4 text-slate-200">Riwayat Transaksi</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
+                        <tr>
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">Keterangan</th>
+                            <th class="p-3">Rincian Akun</th>
+                        </tr>
+                    </thead>
+                    <tbody id="journal-list" class="divide-y divide-slate-700">
+                        <tr><td colspan="3" class="p-4 text-center text-slate-500">Memuat transaksi...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- SCRIPT LOGIKA LOGIN & UTAMA -->
+    <!-- SCRIPT LOGIKA -->
     <script>
-        // Cek status login saat halaman dibuka
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                showMainApp();
-            } else {
-                showLoginScreen();
-            }
+            checkLogin();
+            loadJournals();
         });
+
+        function checkLogin() {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                document.getElementById('login-modal').style.display = 'none';
+            } else {
+                document.getElementById('login-modal').style.display = 'flex';
+            }
+        }
 
         async function handleLogin() {
             const username = document.getElementById('login-user').value;
@@ -62,30 +107,102 @@
                 const data = await res.json();
                 if (data.success) {
                     localStorage.setItem('isLoggedIn', 'true');
-                    showMainApp();
+                    document.getElementById('login-modal').style.display = 'none';
                 } else {
-                    errorEl.innerText = data.message || "Username atau Password salah!";
-                    errorEl.style.display = 'block';
+                    errorEl.innerText = data.message || "Username/Password salah!";
+                    errorEl.classList.remove('hidden');
                 }
             } catch (err) {
                 errorEl.innerText = "Gagal terhubung ke server.";
-                errorEl.style.display = 'block';
+                errorEl.classList.remove('hidden');
             }
         }
 
         function handleLogout() {
             localStorage.removeItem('isLoggedIn');
-            showLoginScreen();
+            location.reload();
         }
 
-        function showMainApp() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
+        function setPrompt(text) {
+            document.getElementById('prompt-input').value = text;
         }
 
-        function showLoginScreen() {
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('main-app').style.display = 'none';
+        async function processAI() {
+            const input = document.getElementById('prompt-input');
+            const status = document.getElementById('status-ai');
+            const btn = document.getElementById('btn-catat');
+
+            if (!input.value.trim()) return alert("Tuliskan transaksi terlebih dahulu!");
+
+            status.classList.remove('hidden');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/ai-journal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt_text: input.value })
+                });
+
+                const result = await res.json();
+                if (!result.success) throw new Error(result.message);
+
+                // Otomatis simpan jurnal hasil analisa AI
+                const today = new Date().toISOString().split('T')[0];
+                const saveRes = await fetch('/api/journals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transaction_date: today,
+                        description: result.data.description,
+                        reference_number: 'AI-' + Date.now().toString().slice(-4),
+                        items: result.data.items
+                    })
+                });
+
+                const saveResult = await saveRes.json();
+                if (!saveResult.success) throw new Error(saveResult.message);
+
+                alert("✅ " + (result.data.human_message || "Transaksi berhasil dicatat!"));
+                input.value = '';
+                loadJournals();
+
+            } catch (err) {
+                alert("❌ Error: " + err.message);
+            } finally {
+                status.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        async function loadJournals() {
+            try {
+                const res = await fetch('/api/journals');
+                const result = await res.json();
+                const tbody = document.getElementById('journal-list');
+
+                if (result.success && result.data.length > 0) {
+                    tbody.innerHTML = result.data.map(j => `
+                        <tr>
+                            <td class="p-3 text-slate-400 whitespace-nowrap">${j.transaction_date}</td>
+                            <td class="p-3 font-medium text-white">${j.description}</td>
+                            <td class="p-3">
+                                ${j.journal_items.map(i => `
+                                    <div class="text-xs">
+                                        <span class="text-slate-400">${i.accounts?.name || 'Akun'}:</span> 
+                                        ${i.debit > 0 ? `<span class="text-emerald-400">Debet Rp ${i.debit.toLocaleString()}</span>` : ''}
+                                        ${i.credit > 0 ? `<span class="text-rose-400">Kredit Rp ${i.credit.toLocaleString()}</span>` : ''}
+                                    </div>
+                                `).join('')}
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Belum ada transaksi.</td></tr>';
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
     </script>
 </body>
